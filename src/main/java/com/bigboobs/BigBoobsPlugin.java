@@ -219,7 +219,7 @@ public class BigBoobsPlugin extends Plugin
 			configManager.setConfiguration("bigboobs", "enableColorTint", true);
 			String hex = String.format("#%02X%02X%02X", sampled.getRed(), sampled.getGreen(), sampled.getBlue());
 			log.info("Sampled screen color: {}", hex);
-			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "[Big Boobs] Sampled color: " + hex, null);
+			clientThread.invoke(() -> client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "[Big Boobs] Sampled color: " + hex, null));
 		}
 		catch (Exception ex)
 		{
