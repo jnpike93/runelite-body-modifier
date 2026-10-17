@@ -1,3 +1,4 @@
+// Body Modifier RuneLite Plugin build configuration
 plugins {
 	id 'java'
 }

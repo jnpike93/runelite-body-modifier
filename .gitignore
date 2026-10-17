@@ -1,9 +1,16 @@
+# Build and dependency artifacts
 .gradle/
 build/
+bin/
+out/
+
+# IDE and editor settings
 .idea/
 *.iml
 .vscode/
-bin/
-out/
+
+# Logs and temporary files
 *.log
+*.tmp
+.DS_Store
 
