@@ -5,6 +5,9 @@ import net.runelite.api.AABB;
 import net.runelite.api.Model;
 import net.runelite.api.Node;
 
+/**
+ * Model wrapper returning null for face transparencies to bypass expensive Z-sorting in GPU pipelines.
+ */
 public class OpaqueModelWrapper implements Model
 {
 	private final Model delegate;

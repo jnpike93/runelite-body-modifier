@@ -31,6 +31,9 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.HotkeyListener;
 
+/**
+ * Main plugin class managing lifecycle, hooks, and configuration for character proportions.
+ */
 @Slf4j
 @PluginDescriptor(
 	name = "Body Modifier",

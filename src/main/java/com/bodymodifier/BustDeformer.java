@@ -4,6 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.JagexColor;
 import net.runelite.api.Model;
 
+/**
+ * Applies procedural geometric deformation and shader-safe depth biasing to character models.
+ */
 @Slf4j
 public class BustDeformer
 {

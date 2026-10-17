@@ -14,6 +14,9 @@ import net.runelite.api.TileObject;
 import net.runelite.api.WorldView;
 import net.runelite.api.hooks.DrawCallbacks;
 
+/**
+ * DrawCallbacks proxy intercepting dynamic render calls to deform models before GPU vertex buffering.
+ */
 @Slf4j
 public class BustDrawCallbacks implements DrawCallbacks
 {

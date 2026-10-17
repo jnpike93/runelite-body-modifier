@@ -10,6 +10,9 @@ import net.runelite.client.config.ConfigSection;
 import net.runelite.client.config.Keybind;
 import net.runelite.client.config.Range;
 
+/**
+ * Configuration options for the Body Modifier plugin.
+ */
 @ConfigGroup("bodymodifier")
 public interface BodyModifierConfig extends Config
 {
@@ -22,7 +25,7 @@ public interface BodyModifierConfig extends Config
 
 	@ConfigSection(
 		name = "Bust Proportions",
-		description = "Adjustable boob dimensions and shape",
+		description = "Adjustable bust dimensions and shape",
 		position = 1
 	)
 	String proportionsSection = "proportions";

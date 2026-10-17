@@ -14,6 +14,9 @@ import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.OverlayPriority;
 
+/**
+ * Interactive on-screen overlay rendering an eyedropper preview box around the cursor.
+ */
 public class ColorPickerOverlay extends Overlay
 {
 	private final Client client;
