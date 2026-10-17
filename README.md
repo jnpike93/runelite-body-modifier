@@ -1,4 +1,4 @@
-# Big Boobs RuneLite Plugin
+# Body Modifier RuneLite Plugin
 
 A standalone client-sided visual modification plugin for Old School RuneScape (OSRS) that procedural deforms character chest geometry to provide adjustable, huge bust proportions. Fully integrated and compatible with RuneLite's **GPU plugin** and **117 HD**.
 
