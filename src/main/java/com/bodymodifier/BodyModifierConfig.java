@@ -1,4 +1,4 @@
-package com.bigboobs;
+package com.bodymodifier;
 
 import java.awt.Color;
 import java.awt.event.InputEvent;
@@ -10,8 +10,8 @@ import net.runelite.client.config.ConfigSection;
 import net.runelite.client.config.Keybind;
 import net.runelite.client.config.Range;
 
-@ConfigGroup("bigboobs")
-public interface BigBoobsConfig extends Config
+@ConfigGroup("bodymodifier")
+public interface BodyModifierConfig extends Config
 {
 	@ConfigSection(
 		name = "General",

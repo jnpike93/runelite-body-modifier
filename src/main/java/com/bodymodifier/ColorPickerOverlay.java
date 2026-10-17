@@ -1,4 +1,4 @@
-package com.bigboobs;
+package com.bodymodifier;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -17,11 +17,11 @@ import net.runelite.client.ui.overlay.OverlayPriority;
 public class ColorPickerOverlay extends Overlay
 {
 	private final Client client;
-	private final BigBoobsConfig config;
+	private final BodyModifierConfig config;
 	private Robot robot;
 
 	@Inject
-	public ColorPickerOverlay(Client client, BigBoobsConfig config)
+	public ColorPickerOverlay(Client client, BodyModifierConfig config)
 	{
 		this.client = client;
 		this.config = config;
@@ -79,4 +79,5 @@ public class ColorPickerOverlay extends Overlay
 		return null;
 	}
 }
+
 

@@ -1,4 +1,4 @@
-package com.bigboobs;
+package com.bodymodifier;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -15,7 +15,7 @@ public class BustDeformerTest
 	@Test
 	public void testDeformationAndRestoration()
 	{
-		BigBoobsConfig config = mock(BigBoobsConfig.class);
+		BodyModifierConfig config = mock(BodyModifierConfig.class);
 		when(config.enabled()).thenReturn(true);
 		when(config.breastSize()).thenReturn(85);
 		when(config.sagAmount()).thenReturn(28);
@@ -68,7 +68,7 @@ public class BustDeformerTest
 	@Test
 	public void testColorOverrideAndRestoration()
 	{
-		BigBoobsConfig config = mock(BigBoobsConfig.class);
+		BodyModifierConfig config = mock(BodyModifierConfig.class);
 		when(config.enabled()).thenReturn(true);
 		when(config.breastSize()).thenReturn(85);
 		when(config.sagAmount()).thenReturn(28);
@@ -118,7 +118,7 @@ public class BustDeformerTest
 	@Test
 	public void testDividingLineColoringAndRestoration()
 	{
-		BigBoobsConfig config = mock(BigBoobsConfig.class);
+		BodyModifierConfig config = mock(BodyModifierConfig.class);
 		when(config.enabled()).thenReturn(true);
 		when(config.breastSize()).thenReturn(85);
 		when(config.sagAmount()).thenReturn(28);
@@ -175,3 +175,4 @@ public class BustDeformerTest
 		assertEquals(200, col1[1]);
 	}
 }
+

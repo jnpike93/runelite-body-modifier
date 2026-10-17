@@ -1,4 +1,4 @@
-package com.bigboobs;
+package com.bodymodifier;
 
 import javax.annotation.Nonnull;
 import net.runelite.api.AABB;
@@ -212,4 +212,5 @@ public class OpaqueModelWrapper implements Model
 	@Override
 	public long getHash() { return delegate.getHash(); }
 }
+
 

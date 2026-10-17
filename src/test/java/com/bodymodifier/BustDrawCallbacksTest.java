@@ -1,4 +1,4 @@
-package com.bigboobs;
+package com.bodymodifier;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -20,8 +20,8 @@ public class BustDrawCallbacksTest
 	@Test
 	public void testDrawDynamicInterceptsAndRestores()
 	{
-		BigBoobsPlugin plugin = mock(BigBoobsPlugin.class);
-		BigBoobsConfig config = mock(BigBoobsConfig.class);
+		BodyModifierPlugin plugin = mock(BodyModifierPlugin.class);
+		BodyModifierConfig config = mock(BodyModifierConfig.class);
 		when(config.enabled()).thenReturn(true);
 		when(config.breastSize()).thenReturn(90);
 		when(config.sagAmount()).thenReturn(30);
@@ -82,8 +82,8 @@ public class BustDrawCallbacksTest
 	@Test
 	public void testDrawTempInterceptsAndRestores()
 	{
-		BigBoobsPlugin plugin = mock(BigBoobsPlugin.class);
-		BigBoobsConfig config = mock(BigBoobsConfig.class);
+		BodyModifierPlugin plugin = mock(BodyModifierPlugin.class);
+		BodyModifierConfig config = mock(BodyModifierConfig.class);
 		when(config.enabled()).thenReturn(true);
 		when(config.breastSize()).thenReturn(90);
 		when(config.sagAmount()).thenReturn(30);
@@ -142,4 +142,5 @@ public class BustDrawCallbacksTest
 		assertEquals("Vertices must be completely restored after drawTemp call", -15.0f, vz[0], 0.001f);
 	}
 }
+
 

@@ -14,7 +14,7 @@ repositories {
 }
 
 def runeLiteVersion = '1.13.2'
-def pluginMainClass = 'com.bigboobs.BigBoobsTest'
+def pluginMainClass = 'com.bodymodifier.BodyModifierTest'
 
 dependencies {
 	compileOnly group: 'net.runelite', name:'client', version: runeLiteVersion
@@ -28,7 +28,7 @@ dependencies {
 	testImplementation group: 'net.runelite', name:'jshell', version: runeLiteVersion
 }
 
-group = 'com.bigboobs'
+group = 'com.bodymodifier'
 version = '1.0.0'
 
 tasks.withType(JavaCompile).configureEach {

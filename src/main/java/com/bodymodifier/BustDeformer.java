@@ -1,4 +1,4 @@
-package com.bigboobs;
+package com.bodymodifier;
 
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.JagexColor;
@@ -79,7 +79,7 @@ public class BustDeformer
 	 * @param config User settings
 	 * @return The ScratchBuffer containing original vertices, or null if no vertices were changed
 	 */
-	public static ScratchBuffer apply(Model model, BigBoobsConfig config)
+	public static ScratchBuffer apply(Model model, BodyModifierConfig config)
 	{
 		if (model == null || !config.enabled())
 		{
@@ -406,3 +406,4 @@ public class BustDeformer
 		}
 	}
 }
+

@@ -1,4 +1,4 @@
-package com.bigboobs;
+package com.bodymodifier;
 
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
@@ -18,10 +18,10 @@ import net.runelite.api.hooks.DrawCallbacks;
 public class BustDrawCallbacks implements DrawCallbacks
 {
 	private final DrawCallbacks delegate;
-	private final BigBoobsConfig config;
-	private final BigBoobsPlugin plugin;
+	private final BodyModifierConfig config;
+	private final BodyModifierPlugin plugin;
 
-	public BustDrawCallbacks(DrawCallbacks delegate, BigBoobsConfig config, BigBoobsPlugin plugin)
+	public BustDrawCallbacks(DrawCallbacks delegate, BodyModifierConfig config, BodyModifierPlugin plugin)
 	{
 		this.delegate = delegate;
 		this.config = config;
