@@ -1,12 +1,13 @@
 # Body Modifier RuneLite Plugin
 
-A standalone client-sided visual modification plugin for Old School RuneScape (OSRS) that procedural deforms character chest geometry to provide adjustable, huge bust proportions. Fully integrated and compatible with RuneLite's **GPU plugin** and **117 HD**.
+A standalone client-sided visual modification plugin for Old School RuneScape (OSRS) that procedurally deforms character chest geometry to provide adjustable bust proportions. Fully integrated and compatible with RuneLite's **GPU plugin** and **117 HD**.
 
 ---
 
 ## Features
 
-* **Adjustable Bust Size (0 to 250):** Smoothly displaces local mesh geometry forward along the chest plane, supporting massive proportions.
+* **Adjustable Bust Size (0 to 250):** Smoothly displaces local mesh geometry forward along the chest plane.
+* **On-Screen Color Picker:** Eyedropper overlay tool to quickly sample and match player skin tones.
 * **Natural Gravity / Sag (0 to 100):** Applies downward teardrop curvature under weight to keep the shape natural rather than pointed.
 * **Cleavage Spacing (5 to 40):** Configures apex focal distance from the center sternum.
 * **Influence Radius (15 to 65):** Controls the falloff radius over the surrounding ribcage and torso to prevent sharp jagged edges.
