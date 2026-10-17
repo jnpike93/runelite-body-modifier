@@ -10,6 +10,9 @@ import java.awt.Color;
 import net.runelite.api.Model;
 import org.junit.Test;
 
+/**
+ * Unit tests verifying mesh vertex deformation, scratch restoration, and depth biasing math.
+ */
 public class BustDeformerTest
 {
 	@Test

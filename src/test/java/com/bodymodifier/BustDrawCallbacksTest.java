@@ -15,6 +15,9 @@ import net.runelite.api.TileObject;
 import net.runelite.api.hooks.DrawCallbacks;
 import org.junit.Test;
 
+/**
+ * Unit tests verifying DrawCallbacks proxy forwarding and model restoration under dynamic rendering.
+ */
 public class BustDrawCallbacksTest
 {
 	@Test
