@@ -156,10 +156,11 @@ public class BustDrawCallbacks implements DrawCallbacks
 	{
 		if (config.enabled() && m != null && plugin.shouldModify(r))
 		{
-			BustDeformer.ScratchBuffer scratch = BustDeformer.apply(m, config);
-			Model modelToDraw = (m.getFaceTransparencies() != null || m.getTransparency() != 0) ? new OpaqueModelWrapper(m) : m;
+			BustDeformer.ScratchBuffer scratch = null;
 			try
 			{
+				scratch = BustDeformer.apply(m, config);
+				Model modelToDraw = (m.getFaceTransparencies() != null || m.getTransparency() != 0) ? new OpaqueModelWrapper(m) : m;
 				delegate.drawDynamic(renderThreadId, worldProjection, scene, tileObject, r, modelToDraw, orient, x, y, z);
 			}
 			catch (Throwable t)
@@ -183,10 +184,11 @@ public class BustDrawCallbacks implements DrawCallbacks
 	{
 		if (config.enabled() && m != null && plugin.shouldModify(r))
 		{
-			BustDeformer.ScratchBuffer scratch = BustDeformer.apply(m, config);
-			Model modelToDraw = (m.getFaceTransparencies() != null || m.getTransparency() != 0) ? new OpaqueModelWrapper(m) : m;
+			BustDeformer.ScratchBuffer scratch = null;
 			try
 			{
+				scratch = BustDeformer.apply(m, config);
+				Model modelToDraw = (m.getFaceTransparencies() != null || m.getTransparency() != 0) ? new OpaqueModelWrapper(m) : m;
 				delegate.drawDynamic(worldProjection, scene, tileObject, r, modelToDraw, orient, x, y, z);
 			}
 			catch (Throwable t)
@@ -211,10 +213,11 @@ public class BustDrawCallbacks implements DrawCallbacks
 		Renderable r = gameObject != null ? gameObject.getRenderable() : null;
 		if (config.enabled() && m != null && plugin.shouldModify(r))
 		{
-			BustDeformer.ScratchBuffer scratch = BustDeformer.apply(m, config);
-			Model modelToDraw = (m.getFaceTransparencies() != null || m.getTransparency() != 0) ? new OpaqueModelWrapper(m) : m;
+			BustDeformer.ScratchBuffer scratch = null;
 			try
 			{
+				scratch = BustDeformer.apply(m, config);
+				Model modelToDraw = (m.getFaceTransparencies() != null || m.getTransparency() != 0) ? new OpaqueModelWrapper(m) : m;
 				delegate.drawTemp(worldProjection, scene, gameObject, modelToDraw, orient, x, y, z);
 			}
 			catch (Throwable t)

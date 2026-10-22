@@ -177,5 +177,117 @@ public class BustDeformerTest
 		assertEquals(100, col1[0]);
 		assertEquals(200, col1[1]);
 	}
+
+	@Test
+	public void testNegativeFaceIndexDoesNotCrash()
+	{
+		BodyModifierConfig config = mock(BodyModifierConfig.class);
+		when(config.enabled()).thenReturn(true);
+		when(config.breastSize()).thenReturn(85);
+		when(config.sagAmount()).thenReturn(28);
+		when(config.cleavage()).thenReturn(15);
+		when(config.verticalOffset()).thenReturn(0);
+		when(config.influenceRadius()).thenReturn(42);
+		when(config.invertZ()).thenReturn(false);
+		when(config.enableColorTint()).thenReturn(true);
+		when(config.tintColor()).thenReturn(new Color(255, 0, 0));
+
+		float[] vx = new float[]{15.0f, 0.0f, 0.0f, 0.0f};
+		float[] vy = new float[]{-138.0f, -138.0f, 0.0f, -200.0f};
+		float[] vz = new float[]{-15.0f, 15.0f, 0.0f, 0.0f};
+
+		// Negative vertex index (sentinel -1 or out-of-bounds index)
+		int[] ind1 = new int[]{-1, 0};
+		int[] ind2 = new int[]{1, 1};
+		int[] ind3 = new int[]{2, 2};
+
+		int[] col1 = new int[]{100, 100};
+		int[] col2 = new int[]{100, 100};
+		int[] col3 = new int[]{100, 100};
+
+		Model model = mock(Model.class);
+		when(model.getVerticesX()).thenReturn(vx);
+		when(model.getVerticesY()).thenReturn(vy);
+		when(model.getVerticesZ()).thenReturn(vz);
+		when(model.getVerticesCount()).thenReturn(4);
+		when(model.getFaceCount()).thenReturn(2);
+		when(model.getFaceIndices1()).thenReturn(ind1);
+		when(model.getFaceIndices2()).thenReturn(ind2);
+		when(model.getFaceIndices3()).thenReturn(ind3);
+		when(model.getFaceColors1()).thenReturn(col1);
+		when(model.getFaceColors2()).thenReturn(col2);
+		when(model.getFaceColors3()).thenReturn(col3);
+
+		// Must not throw ArrayIndexOutOfBoundsException
+		BustDeformer.ScratchBuffer scratch = BustDeformer.apply(model, config);
+		assertNotNull(scratch);
+		// Second face (index 1) should be colored, first face (-1) skipped
+		assertEquals(1, scratch.faceCount);
+
+		BustDeformer.restore(model, scratch);
+		assertEquals(100, col1[1]);
+	}
+
+	@Test
+	public void testFaceArrayBoundsClamping()
+	{
+		BodyModifierConfig config = mock(BodyModifierConfig.class);
+		when(config.enabled()).thenReturn(true);
+		when(config.breastSize()).thenReturn(85);
+		when(config.influenceRadius()).thenReturn(42);
+		when(config.enableColorTint()).thenReturn(true);
+		when(config.tintColor()).thenReturn(new Color(255, 0, 0));
+
+		float[] vx = new float[]{15.0f, 0.0f, 0.0f, 0.0f};
+		float[] vy = new float[]{-138.0f, -138.0f, 0.0f, -200.0f};
+		float[] vz = new float[]{-15.0f, 15.0f, 0.0f, 0.0f};
+
+		// Model reports 10 faces, but array only has length 1
+		int[] ind1 = new int[]{0};
+		int[] ind2 = new int[]{1};
+		int[] ind3 = new int[]{2};
+
+		int[] col1 = new int[]{100};
+		int[] col2 = new int[]{100};
+		int[] col3 = new int[]{100};
+
+		Model model = mock(Model.class);
+		when(model.getVerticesX()).thenReturn(vx);
+		when(model.getVerticesY()).thenReturn(vy);
+		when(model.getVerticesZ()).thenReturn(vz);
+		when(model.getVerticesCount()).thenReturn(4);
+		when(model.getFaceCount()).thenReturn(10); // larger than arrays
+		when(model.getFaceIndices1()).thenReturn(ind1);
+		when(model.getFaceIndices2()).thenReturn(ind2);
+		when(model.getFaceIndices3()).thenReturn(ind3);
+		when(model.getFaceColors1()).thenReturn(col1);
+		when(model.getFaceColors2()).thenReturn(col2);
+		when(model.getFaceColors3()).thenReturn(col3);
+
+		BustDeformer.ScratchBuffer scratch = BustDeformer.apply(model, config);
+		assertNotNull(scratch);
+		BustDeformer.restore(model, scratch);
+	}
+
+	@Test
+	public void testRestoreNullSafety()
+	{
+		BustDeformer.restore(null, null);
+
+		Model model = mock(Model.class);
+		BustDeformer.restore(model, null);
+
+		BustDeformer.ScratchBuffer scratch = new BustDeformer.ScratchBuffer();
+		BustDeformer.restore(null, scratch);
+
+		// Model returning null vertex arrays
+		when(model.getVerticesX()).thenReturn(null);
+		when(model.getVerticesY()).thenReturn(null);
+		when(model.getVerticesZ()).thenReturn(null);
+		scratch.count = 2;
+		scratch.indices[0] = 0;
+		scratch.indices[1] = 1;
+		BustDeformer.restore(model, scratch);
+	}
 }
 

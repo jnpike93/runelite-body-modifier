@@ -92,6 +92,8 @@ public class OpaqueModelWrapper implements Model
 	public int getDiameter() { return delegate.getDiameter(); }
 
 	@Override
+	@Deprecated
+	@SuppressWarnings("deprecation")
 	public void calculateExtreme(int orientation) { delegate.calculateExtreme(orientation); }
 
 	@Nonnull

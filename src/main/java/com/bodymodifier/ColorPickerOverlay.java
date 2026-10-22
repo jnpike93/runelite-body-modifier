@@ -3,25 +3,22 @@ package com.bodymodifier;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
-import java.awt.MouseInfo;
-import java.awt.Point;
-import java.awt.PointerInfo;
-import java.awt.Robot;
 import javax.inject.Inject;
+import net.runelite.api.BufferProvider;
 import net.runelite.api.Client;
+import net.runelite.api.Point;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
-import net.runelite.client.ui.overlay.OverlayPriority;
 
 /**
  * Interactive on-screen overlay rendering an eyedropper preview box around the cursor.
+ * Uses safe in-canvas BufferProvider pixel sampling without java.awt.Robot or OS screen-scraping.
  */
 public class ColorPickerOverlay extends Overlay
 {
 	private final Client client;
 	private final BodyModifierConfig config;
-	private Robot robot;
 
 	@Inject
 	public ColorPickerOverlay(Client client, BodyModifierConfig config)
@@ -30,38 +27,60 @@ public class ColorPickerOverlay extends Overlay
 		this.config = config;
 		setPosition(OverlayPosition.DYNAMIC);
 		setLayer(OverlayLayer.ALWAYS_ON_TOP);
-		setPriority(OverlayPriority.HIGH);
-		try
+		setPriority(PRIORITY_HIGH);
+	}
+
+	/**
+	 * Samples the color directly from the client canvas buffer at the given canvas coordinates.
+	 * Returns null if the position is out of bounds or buffer is unavailable.
+	 */
+	public Color getSampledColor(Point mouseCanvasPos)
+	{
+		if (mouseCanvasPos == null || client == null)
 		{
-			this.robot = new Robot();
+			return null;
 		}
-		catch (Exception ignored)
+
+		BufferProvider bp = client.getBufferProvider();
+		if (bp == null)
 		{
+			return null;
 		}
+
+		int[] pixels = bp.getPixels();
+		int width = bp.getWidth();
+		int height = bp.getHeight();
+		int x = mouseCanvasPos.getX();
+		int y = mouseCanvasPos.getY();
+
+		if (pixels != null && x >= 0 && x < width && y >= 0 && y < height)
+		{
+			int rgb = pixels[y * width + x];
+			return new Color((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF);
+		}
+
+		return null;
 	}
 
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
-		if (!config.eyedropperMode() || robot == null)
+		if (!config.eyedropperMode())
 		{
 			return null;
 		}
 
-		net.runelite.api.Point mouseCanvasPos = client.getMouseCanvasPosition();
+		Point mouseCanvasPos = client.getMouseCanvasPosition();
 		if (mouseCanvasPos == null)
 		{
 			return null;
 		}
 
-		PointerInfo pointerInfo = MouseInfo.getPointerInfo();
-		if (pointerInfo == null)
+		Color hoveredColor = getSampledColor(mouseCanvasPos);
+		if (hoveredColor == null)
 		{
 			return null;
 		}
-
-		Point screenPos = pointerInfo.getLocation();
-		Color hoveredColor = robot.getPixelColor(screenPos.x, screenPos.y);
 
 		int x = mouseCanvasPos.getX() + 18;
 		int y = mouseCanvasPos.getY() + 18;
@@ -82,5 +101,3 @@ public class ColorPickerOverlay extends Overlay
 		return null;
 	}
 }
-
-

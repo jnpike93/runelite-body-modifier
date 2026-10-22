@@ -132,10 +132,12 @@ public class BustDeformer
 		scratch.count = 0;
 		scratch.faceCount = 0;
 
-		// In OSRS local coordinates:
-		// Ground/feet is around modelMaxY (typically ~0), head is modelMinY (typically ~ -200).
-		// Bust line is approximately 68-72% up from feet towards head.
-		final float centerY = modelMaxY - (0.69f * height) + config.verticalOffset();
+		try
+		{
+			// In OSRS local coordinates:
+			// Ground/feet is around modelMaxY (typically ~0), head is modelMinY (typically ~ -200).
+			// Bust line is approximately 68-72% up from feet towards head.
+			final float centerY = modelMaxY - (0.69f * height) + config.verticalOffset();
 
 		// Torso core Z-bounds: locate the chest and spine depth using only torso vertices.
 		// Torso core width is |x| <= 35, height is centerY +/- 35, depth |z| <= 70 (excluding weapons/shields/capes).
@@ -284,10 +286,17 @@ public class BustDeformer
 
 				if (fc1 != null && fc2 != null && fc3 != null && ind1 != null && ind2 != null && ind3 != null)
 				{
+					int safeFaces = Math.min(numFaces, Math.min(fc1.length, Math.min(fc2.length, Math.min(fc3.length,
+						Math.min(ind1.length, Math.min(ind2.length, ind3.length))))));
+
 					boolean[] isDeformedVertex = new boolean[vertexCount];
 					for (int k = 0; k < scratch.count; k++)
 					{
-						isDeformedVertex[scratch.indices[k]] = true;
+						int vIdx = scratch.indices[k];
+						if (vIdx >= 0 && vIdx < vertexCount)
+						{
+							isDeformedVertex[vIdx] = true;
+						}
 					}
 
 					short tintHsl = doTint ? JagexColor.rgbToHSL(config.tintColor().getRGB(), 1.0) : 0;
@@ -298,13 +307,13 @@ public class BustDeformer
 
 					final float lineWidth = Math.max(0.65f, (float) config.dividingLineWidth() * 0.85f);
 
-					for (int f = 0; f < numFaces; f++)
+					for (int f = 0; f < safeFaces; f++)
 					{
 						int v1 = ind1[f];
 						int v2 = ind2[f];
 						int v3 = ind3[f];
 
-						if (v1 < vertexCount && v2 < vertexCount && v3 < vertexCount)
+						if (v1 >= 0 && v1 < vertexCount && v2 >= 0 && v2 < vertexCount && v3 >= 0 && v3 < vertexCount)
 						{
 							if (isDeformedVertex[v1] || isDeformedVertex[v2] || isDeformedVertex[v3])
 							{
@@ -358,6 +367,13 @@ public class BustDeformer
 
 		return scratch.count > 0 ? scratch : null;
 	}
+	catch (Throwable t)
+	{
+		log.error("Exception during BustDeformer deformation, restoring model state", t);
+		restore(model, scratch);
+		return null;
+	}
+}
 
 	/**
 	 * Restores original vertex positions and face colors from the scratch buffer.
@@ -378,15 +394,27 @@ public class BustDeformer
 			final float[] vy = model.getVerticesY();
 			final float[] vz = model.getVerticesZ();
 
-			for (int k = 0; k < scratch.count; k++)
+			if (vx != null && vy != null && vz != null)
 			{
-				final int i = scratch.indices[k];
-				vx[i] = scratch.origX[k];
-				vy[i] = scratch.origY[k];
-				vz[i] = scratch.origZ[k];
+				for (int k = 0; k < scratch.count; k++)
+				{
+					final int i = scratch.indices[k];
+					if (i >= 0 && i < vx.length && i < vy.length && i < vz.length)
+					{
+						vx[i] = scratch.origX[k];
+						vy[i] = scratch.origY[k];
+						vz[i] = scratch.origZ[k];
+					}
+				}
 			}
 			scratch.count = 0;
-			model.calculateBoundsCylinder();
+			try
+			{
+				model.calculateBoundsCylinder();
+			}
+			catch (Throwable ignored)
+			{
+			}
 		}
 
 		if (scratch.faceCount > 0)
@@ -400,9 +428,12 @@ public class BustDeformer
 				for (int k = 0; k < scratch.faceCount; k++)
 				{
 					int f = scratch.faceIndices[k];
-					fc1[f] = scratch.origFaceColors1[k];
-					fc2[f] = scratch.origFaceColors2[k];
-					fc3[f] = scratch.origFaceColors3[k];
+					if (f >= 0 && f < fc1.length && f < fc2.length && f < fc3.length)
+					{
+						fc1[f] = scratch.origFaceColors1[k];
+						fc2[f] = scratch.origFaceColors2[k];
+						fc3[f] = scratch.origFaceColors3[k];
+					}
 				}
 			}
 			scratch.faceCount = 0;

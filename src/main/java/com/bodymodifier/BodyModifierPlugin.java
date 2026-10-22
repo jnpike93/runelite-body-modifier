@@ -2,10 +2,6 @@ package com.bodymodifier;
 
 import com.google.inject.Provides;
 import java.awt.Color;
-import java.awt.MouseInfo;
-import java.awt.Point;
-import java.awt.PointerInfo;
-import java.awt.Robot;
 import java.awt.event.MouseEvent;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +10,7 @@ import net.runelite.api.Client;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
 import net.runelite.api.PlayerComposition;
+import net.runelite.api.Point;
 import net.runelite.api.Renderable;
 import net.runelite.api.events.BeforeRender;
 import net.runelite.api.events.GameStateChanged;
@@ -210,18 +207,20 @@ public class BodyModifierPlugin extends Plugin
 	{
 		try
 		{
-			PointerInfo pointerInfo = MouseInfo.getPointerInfo();
-			if (pointerInfo == null)
+			Point mousePos = client.getMouseCanvasPosition();
+			if (mousePos == null || colorPickerOverlay == null)
 			{
 				return;
 			}
-			Point screenPos = pointerInfo.getLocation();
-			Robot robot = new Robot();
-			Color sampled = robot.getPixelColor(screenPos.x, screenPos.y);
+			Color sampled = colorPickerOverlay.getSampledColor(mousePos);
+			if (sampled == null)
+			{
+				return;
+			}
 			configManager.setConfiguration("bodymodifier", "tintColor", sampled);
 			configManager.setConfiguration("bodymodifier", "enableColorTint", true);
 			String hex = String.format("#%02X%02X%02X", sampled.getRed(), sampled.getGreen(), sampled.getBlue());
-			log.info("Sampled screen color: {}", hex);
+			log.info("Sampled canvas color: {}", hex);
 			clientThread.invoke(() -> client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "[Body Modifier] Sampled color: " + hex, null));
 		}
 		catch (Exception ex)
@@ -267,13 +266,13 @@ public class BodyModifierPlugin extends Plugin
 				case FEMALE_ONLY:
 				{
 					PlayerComposition comp = player.getPlayerComposition();
-					return comp != null && comp.isFemale();
+					return comp != null && comp.getGender() == 1;
 				}
 
 				case MALE_ONLY:
 				{
 					PlayerComposition comp = player.getPlayerComposition();
-					return comp != null && !comp.isFemale();
+					return comp != null && comp.getGender() == 0;
 				}
 
 				case LOCAL_PLAYER_ONLY:

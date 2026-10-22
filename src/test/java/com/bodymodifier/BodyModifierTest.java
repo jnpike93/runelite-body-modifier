@@ -8,6 +8,7 @@ import net.runelite.client.externalplugins.ExternalPluginManager;
  */
 public class BodyModifierTest
 {
+	@SuppressWarnings("unchecked")
 	public static void main(String[] args) throws Exception
 	{
 		ExternalPluginManager.loadBuiltin(BodyModifierPlugin.class);
