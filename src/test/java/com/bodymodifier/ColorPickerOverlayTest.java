@@ -95,3 +95,4 @@ public class ColorPickerOverlayTest
 		assertNull(overlay.getSampledColor(new Point(10, 10)));
 	}
 }
+
