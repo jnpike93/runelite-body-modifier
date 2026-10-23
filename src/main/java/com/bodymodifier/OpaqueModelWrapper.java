@@ -93,7 +93,6 @@ public class OpaqueModelWrapper implements Model
 
 	@Override
 	@Deprecated
-	@SuppressWarnings("deprecation")
 	public void calculateExtreme(int orientation) { delegate.calculateExtreme(orientation); }
 
 	@Nonnull

@@ -1,5 +1,6 @@
 package com.bodymodifier;
 
+import java.util.concurrent.atomic.AtomicLong;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.JagexColor;
 import net.runelite.api.Model;
@@ -13,11 +14,13 @@ public class BustDeformer
 	// ThreadLocal scratch buffer to prevent GC allocations and guarantee thread safety
 	private static final ThreadLocal<ScratchBuffer> THREAD_SCRATCH = ThreadLocal.withInitial(ScratchBuffer::new);
 
-	private static long lastDiagnosticLogTime = 0;
+	private static final AtomicLong LAST_DIAGNOSTIC_LOG_TIME = new AtomicLong(0);
 
 	public static class ScratchBuffer
 	{
 		private static final int INITIAL_CAPACITY = 2048;
+		private static final int MAX_RETAINED_CAPACITY = 8192;
+
 		public int count = 0;
 		public int[] indices = new int[INITIAL_CAPACITY];
 		public float[] origX = new float[INITIAL_CAPACITY];
@@ -29,6 +32,8 @@ public class BustDeformer
 		public int[] origFaceColors1 = new int[INITIAL_CAPACITY];
 		public int[] origFaceColors2 = new int[INITIAL_CAPACITY];
 		public int[] origFaceColors3 = new int[INITIAL_CAPACITY];
+
+		public boolean[] deformedVertexMask = new boolean[INITIAL_CAPACITY];
 
 		public void ensureCapacity(int minCapacity)
 		{
@@ -73,6 +78,46 @@ public class BustDeformer
 				origFaceColors3 = newC3;
 			}
 		}
+
+		public boolean[] acquireVertexMask(int vertexCount)
+		{
+			if (vertexCount > deformedVertexMask.length)
+			{
+				int newCap = Math.max(deformedVertexMask.length * 2, vertexCount);
+				deformedVertexMask = new boolean[newCap];
+			}
+			return deformedVertexMask;
+		}
+
+		public void trimIfExcessive()
+		{
+			if (indices.length > MAX_RETAINED_CAPACITY)
+			{
+				indices = new int[INITIAL_CAPACITY];
+				origX = new float[INITIAL_CAPACITY];
+				origY = new float[INITIAL_CAPACITY];
+				origZ = new float[INITIAL_CAPACITY];
+			}
+			if (faceIndices.length > MAX_RETAINED_CAPACITY)
+			{
+				faceIndices = new int[INITIAL_CAPACITY];
+				origFaceColors1 = new int[INITIAL_CAPACITY];
+				origFaceColors2 = new int[INITIAL_CAPACITY];
+				origFaceColors3 = new int[INITIAL_CAPACITY];
+			}
+			if (deformedVertexMask.length > MAX_RETAINED_CAPACITY)
+			{
+				deformedVertexMask = new boolean[INITIAL_CAPACITY];
+			}
+		}
+	}
+
+	/**
+	 * Removes the current thread's scratch buffer to prevent ThreadLocal retention on shutdown.
+	 */
+	public static void cleanup()
+	{
+		THREAD_SCRATCH.remove();
 	}
 
 	/**
@@ -289,67 +334,81 @@ public class BustDeformer
 					int safeFaces = Math.min(numFaces, Math.min(fc1.length, Math.min(fc2.length, Math.min(fc3.length,
 						Math.min(ind1.length, Math.min(ind2.length, ind3.length))))));
 
-					boolean[] isDeformedVertex = new boolean[vertexCount];
-					for (int k = 0; k < scratch.count; k++)
+					boolean[] isDeformedVertex = scratch.acquireVertexMask(vertexCount);
+					try
 					{
-						int vIdx = scratch.indices[k];
-						if (vIdx >= 0 && vIdx < vertexCount)
+						for (int k = 0; k < scratch.count; k++)
 						{
-							isDeformedVertex[vIdx] = true;
+							int vIdx = scratch.indices[k];
+							if (vIdx >= 0 && vIdx < vertexCount)
+							{
+								isDeformedVertex[vIdx] = true;
+							}
+						}
+
+						short tintHsl = doTint ? JagexColor.rgbToHSL(config.tintColor().getRGB(), 1.0) : 0;
+						int tintColorInt = tintHsl & 0xFFFF;
+
+						short lineHsl = doDividingLine ? JagexColor.rgbToHSL(config.dividingLineColor().getRGB(), 1.0) : 0;
+						int lineColorInt = lineHsl & 0xFFFF;
+
+						final float lineWidth = Math.max(0.65f, (float) config.dividingLineWidth() * 0.85f);
+
+						for (int f = 0; f < safeFaces; f++)
+						{
+							int v1 = ind1[f];
+							int v2 = ind2[f];
+							int v3 = ind3[f];
+
+							if (v1 >= 0 && v1 < vertexCount && v2 >= 0 && v2 < vertexCount && v3 >= 0 && v3 < vertexCount)
+							{
+								if (isDeformedVertex[v1] || isDeformedVertex[v2] || isDeformedVertex[v3])
+								{
+									float faceCenterX = (vx[v1] + vx[v2] + vx[v3]) / 3.0f;
+									float faceCenterY = (vy[v1] + vy[v2] + vy[v3]) / 3.0f;
+									float faceCenterZ = (vz[v1] + vz[v2] + vz[v3]) / 3.0f;
+
+									boolean isFront = !inverted ? (faceCenterZ <= midZ + 5.0f) : (faceCenterZ >= midZ - 5.0f);
+									boolean isDividingLine = doDividingLine
+										&& isFront
+										&& Math.abs(faceCenterX) <= lineWidth
+										&& Math.abs(faceCenterY - centerY) <= config.influenceRadius() * 1.05f;
+
+									int targetColor = -1;
+									if (isDividingLine)
+									{
+										targetColor = lineColorInt;
+									}
+									else if (doTint)
+									{
+										targetColor = tintColorInt;
+									}
+
+									if (targetColor != -1)
+									{
+										scratch.ensureFaceCapacity(scratch.faceCount + 1);
+										scratch.faceIndices[scratch.faceCount] = f;
+										scratch.origFaceColors1[scratch.faceCount] = fc1[f];
+										scratch.origFaceColors2[scratch.faceCount] = fc2[f];
+										scratch.origFaceColors3[scratch.faceCount] = fc3[f];
+										scratch.faceCount++;
+
+										fc1[f] = targetColor;
+										fc2[f] = targetColor;
+										fc3[f] = targetColor;
+									}
+								}
+							}
 						}
 					}
-
-					short tintHsl = doTint ? JagexColor.rgbToHSL(config.tintColor().getRGB(), 1.0) : 0;
-					int tintColorInt = tintHsl & 0xFFFF;
-
-					short lineHsl = doDividingLine ? JagexColor.rgbToHSL(config.dividingLineColor().getRGB(), 1.0) : 0;
-					int lineColorInt = lineHsl & 0xFFFF;
-
-					final float lineWidth = Math.max(0.65f, (float) config.dividingLineWidth() * 0.85f);
-
-					for (int f = 0; f < safeFaces; f++)
+					finally
 					{
-						int v1 = ind1[f];
-						int v2 = ind2[f];
-						int v3 = ind3[f];
-
-						if (v1 >= 0 && v1 < vertexCount && v2 >= 0 && v2 < vertexCount && v3 >= 0 && v3 < vertexCount)
+						for (int k = 0; k < scratch.count; k++)
 						{
-							if (isDeformedVertex[v1] || isDeformedVertex[v2] || isDeformedVertex[v3])
+							int vIdx = scratch.indices[k];
+							if (vIdx >= 0 && vIdx < isDeformedVertex.length)
 							{
-								float faceCenterX = (vx[v1] + vx[v2] + vx[v3]) / 3.0f;
-								float faceCenterY = (vy[v1] + vy[v2] + vy[v3]) / 3.0f;
-								float faceCenterZ = (vz[v1] + vz[v2] + vz[v3]) / 3.0f;
-
-								boolean isFront = !inverted ? (faceCenterZ <= midZ + 5.0f) : (faceCenterZ >= midZ - 5.0f);
-								boolean isDividingLine = doDividingLine
-									&& isFront
-									&& Math.abs(faceCenterX) <= lineWidth
-									&& Math.abs(faceCenterY - centerY) <= config.influenceRadius() * 1.05f;
-
-								int targetColor = -1;
-								if (isDividingLine)
-								{
-									targetColor = lineColorInt;
-								}
-								else if (doTint)
-								{
-									targetColor = tintColorInt;
-								}
-
-								if (targetColor != -1)
-								{
-									scratch.ensureFaceCapacity(scratch.faceCount + 1);
-									scratch.faceIndices[scratch.faceCount] = f;
-									scratch.origFaceColors1[scratch.faceCount] = fc1[f];
-									scratch.origFaceColors2[scratch.faceCount] = fc2[f];
-									scratch.origFaceColors3[scratch.faceCount] = fc3[f];
-									scratch.faceCount++;
-
-									fc1[f] = targetColor;
-									fc2[f] = targetColor;
-									fc3[f] = targetColor;
-								}
+								isDeformedVertex[vIdx] = false;
 							}
 						}
 					}
@@ -358,9 +417,9 @@ public class BustDeformer
 		}
 
 		long now = System.currentTimeMillis();
-		if (now - lastDiagnosticLogTime > 4000)
+		long prev = LAST_DIAGNOSTIC_LOG_TIME.get();
+		if (now - prev > 4000 && LAST_DIAGNOSTIC_LOG_TIME.compareAndSet(prev, now))
 		{
-			lastDiagnosticLogTime = now;
 			log.info("BustDeformer: deformed {}/{} FRONT vertices, {} faces tinted (H={}, centerY={}, frontZ={}, midZ={})",
 				scratch.count, vertexCount, scratch.faceCount, (int) height, (int) centerY, (int) frontZ, (int) midZ);
 		}
@@ -438,6 +497,8 @@ public class BustDeformer
 			}
 			scratch.faceCount = 0;
 		}
+
+		scratch.trimIfExcessive();
 	}
 }
 

@@ -53,10 +53,14 @@ public class ColorPickerOverlay extends Overlay
 		int x = mouseCanvasPos.getX();
 		int y = mouseCanvasPos.getY();
 
-		if (pixels != null && x >= 0 && x < width && y >= 0 && y < height)
+		if (pixels != null && width > 0 && height > 0 && x >= 0 && x < width && y >= 0 && y < height)
 		{
-			int rgb = pixels[y * width + x];
-			return new Color((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF);
+			long index = (long) y * width + x;
+			if (index >= 0 && index < pixels.length)
+			{
+				int rgb = pixels[(int) index];
+				return new Color((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF);
+			}
 		}
 
 		return null;

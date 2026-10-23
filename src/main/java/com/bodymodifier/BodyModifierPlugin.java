@@ -63,7 +63,7 @@ public class BodyModifierPlugin extends Plugin
 	@Inject
 	private ColorPickerOverlay colorPickerOverlay;
 
-	private BustDrawCallbacks wrapper;
+	private volatile BustDrawCallbacks wrapper;
 
 	private final HotkeyListener hotkeyListener = new HotkeyListener(() -> config.colorPickerHotkey())
 	{
@@ -197,7 +197,11 @@ public class BodyModifierPlugin extends Plugin
 		}
 
 		DrawCallbacks current = client.getDrawCallbacks();
-		if (current != null && current != wrapper)
+		if (current == null)
+		{
+			wrapper = null;
+		}
+		else if (current != wrapper)
 		{
 			attachGpuHook();
 		}
@@ -205,6 +209,12 @@ public class BodyModifierPlugin extends Plugin
 
 	public void pickColorUnderCursor()
 	{
+		if (clientThread != null && client != null && !client.isClientThread())
+		{
+			clientThread.invokeLater(this::pickColorUnderCursor);
+			return;
+		}
+
 		try
 		{
 			Point mousePos = client.getMouseCanvasPosition();
@@ -221,7 +231,7 @@ public class BodyModifierPlugin extends Plugin
 			configManager.setConfiguration("bodymodifier", "enableColorTint", true);
 			String hex = String.format("#%02X%02X%02X", sampled.getRed(), sampled.getGreen(), sampled.getBlue());
 			log.info("Sampled canvas color: {}", hex);
-			clientThread.invoke(() -> client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "[Body Modifier] Sampled color: " + hex, null));
+			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "[Body Modifier] Sampled color: " + hex, null);
 		}
 		catch (Exception ex)
 		{
@@ -232,7 +242,12 @@ public class BodyModifierPlugin extends Plugin
 	private void attachGpuHook()
 	{
 		DrawCallbacks current = client.getDrawCallbacks();
-		if (current == null || current instanceof BustDrawCallbacks)
+		if (current == null)
+		{
+			wrapper = null;
+			return;
+		}
+		if (current instanceof BustDrawCallbacks)
 		{
 			return;
 		}
@@ -251,6 +266,7 @@ public class BodyModifierPlugin extends Plugin
 			log.info("Detached BustDrawCallbacks");
 		}
 		wrapper = null;
+		BustDeformer.cleanup();
 	}
 
 	public boolean shouldModify(Renderable renderable)
